@@ -19,5 +19,13 @@
   "bugs": {
     "url": "https://github.com/OliveTreeBible/ot-logger-deluxe/issues"
   },
-  "homepage": "https://github.com/OliveTreeBible/ot-logger-deluxe#readme"
+  "homepage": "https://github.com/OliveTreeBible/ot-logger-deluxe#readme",
+  "dependencies": {
+    "@types/node": "^18.0.6",
+    "@types/superagent": "^4.1.15",
+    "moment": "^2.29.4",
+    "superagent": "^8.0.0",
+    "typescript-logging": "^2.0.1",
+    "typescript-logging-log4ts-style": "^2.0.1"
+  }
 }
