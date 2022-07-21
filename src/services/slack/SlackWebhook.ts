@@ -3,7 +3,7 @@ import * as superagent from 'superagent'
 import { ISlackConfig as IOTSlackConfig } from '../../interfaces/slackConfig.interface'
 import { OTLogableMessage } from '../../OTLogableMessage'
 import { SlackAlertType } from '../../types/SlackAlertType'
-import { SlackBodies } from './slackBodies'
+import { SlackBodies } from './SlackBodies'
 
 export class OTSlackWebhook {
     private _slackIntegrationKeys: IOTSlackConfig
