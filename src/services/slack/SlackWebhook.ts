@@ -1,14 +1,14 @@
 import * as superagent from 'superagent'
 
-import { ISlackConfig } from '../../interfaces/slackConfig.interface'
-import { StructuredMessage } from '../../StructuredMessage'
+import { ISlackConfig as IOTSlackConfig } from '../../interfaces/slackConfig.interface'
+import { OTLogableMessage } from '../../OTLogableMessage'
 import { SlackAlertType } from '../../types/SlackAlertType'
 import { SlackBodies } from './slackBodies'
 
-export class SlackWebhook {
-    private _slackIntegrationKeys: ISlackConfig
+export class OTSlackWebhook {
+    private _slackIntegrationKeys: IOTSlackConfig
     private _headerText: string
-    constructor(headerText: string, slackIntegrationKeys: ISlackConfig) {
+    constructor(headerText: string, slackIntegrationKeys: IOTSlackConfig) {
         this._slackIntegrationKeys = slackIntegrationKeys
         this._headerText = headerText
     }
@@ -47,19 +47,19 @@ export class SlackWebhook {
         })
     }
 
-    async postFatal(namedMessages: StructuredMessage) {
+    async postFatal(namedMessages: OTLogableMessage) {
         await this._postAlert(SlackBodies.fatalBody(this._headerText, namedMessages), SlackAlertType.fatal)
     }
 
-    async postError(namedMessages: StructuredMessage) {
+    async postError(namedMessages: OTLogableMessage) {
         await this._postAlert(SlackBodies.errorBody(this._headerText, namedMessages), SlackAlertType.error)
     }
 
-    async postWarning(namedMessages: StructuredMessage) {
+    async postWarning(namedMessages: OTLogableMessage) {
         await this._postAlert(SlackBodies.warningBody(this._headerText, namedMessages), SlackAlertType.warning)
     }
 
-    async postInfo(namedMessages: StructuredMessage) {
+    async postInfo(namedMessages: OTLogableMessage) {
         await this._postAlert(SlackBodies.infoBody(this._headerText, namedMessages), SlackAlertType.info)
     }
 

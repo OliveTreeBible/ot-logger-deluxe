@@ -1,30 +1,29 @@
 import * as moment from 'moment'
 import * as os from 'os'
 
-import { EmbellishedMessage } from '../../EmbellishedMessage'
-import { StructuredMessage } from '../../StructuredMessage'
+import { OTLogableMessage } from '../../OTLogableMessage'
 import { SlackAlertType } from '../../types/SlackAlertType'
 
 export class SlackBodies {
-    static fatalBody(title:string, structuredMessage: StructuredMessage): string {
-        return SlackBodies._fillBody(SlackBodies.bodyLevel2, title, structuredMessage, SlackAlertType.fatal)
+    static fatalBody(title:string, logableMessage: OTLogableMessage): string {
+        return SlackBodies._fillBody(SlackBodies.bodyLevel2, title, logableMessage, SlackAlertType.fatal)
     }
-    static errorBody(title:string, structuredMessage: StructuredMessage): string {
-        return SlackBodies._fillBody(SlackBodies.bodyLevel2, title, structuredMessage, SlackAlertType.error)
+    static errorBody(title:string, logableMessage: OTLogableMessage): string {
+        return SlackBodies._fillBody(SlackBodies.bodyLevel2, title, logableMessage, SlackAlertType.error)
     }
-    static warningBody(title:string, structuredMessage: StructuredMessage): string {
-        return SlackBodies._fillBody(SlackBodies.bodyLevel1, title, structuredMessage, SlackAlertType.warning)
+    static warningBody(title:string, logableMessage: OTLogableMessage): string {
+        return SlackBodies._fillBody(SlackBodies.bodyLevel1, title, logableMessage, SlackAlertType.warning)
     }
-    static infoBody(title:string, structuredMessage: StructuredMessage): string {
-        return SlackBodies._fillBody(SlackBodies.bodyLevel0, title, structuredMessage, SlackAlertType.info)
+    static infoBody(title:string, logableMessage: OTLogableMessage): string {
+        return SlackBodies._fillBody(SlackBodies.bodyLevel0, title, logableMessage, SlackAlertType.info)
     }
 
-    private static _fillBody(body: string, title:string, structuredMessage: StructuredMessage, alertType: SlackAlertType): string {
-        const messages = structuredMessage.parts.reduce((p: string, m: EmbellishedMessage) => {
+    private static _fillBody(body: string, title:string, logableMessage: OTLogableMessage, alertType: SlackAlertType): string {
+        const messages = logableMessage.partsAsStringArray().reduce((p: string, text: string) => {
             return (p.length > 0 ? p + ',' : '') + `
             {
                 "type": "mrkdwn",
-                "text": "${m.toString()}"
+                "text": "${text}"
             }`
         }, '')
         return body
