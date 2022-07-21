@@ -1,11 +1,19 @@
 {
   "name": "ot-logger-deluxe",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A logging system that provides a seemless, unified system for robust logging to a system log as well as to slack. ",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "lint": "eslint --fix tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "repository": {
     "type": "git",
@@ -15,6 +23,7 @@
     "logging",
     "slack"
   ],
+  "private": false,
   "author": "David Trotz",
   "license": "MIT",
   "bugs": {
@@ -28,5 +37,10 @@
     "superagent": "^8.0.0",
     "typescript-logging": "^2.0.1",
     "typescript-logging-log4ts-style": "^2.0.1"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
+    "eslint": "^8.20.0"
   }
 }

@@ -1,9 +1,9 @@
 export interface ISlackConfig {
-    keys: ISlackKeys
+  keys: ISlackKeys;
 }
 export interface ISlackKeys {
-    fatalChannelKey?: string
-    errorChannelKey?: string
-    warningChannelKey?: string
-    infoChannelKey?: string
+  fatalChannelKey?: string;
+  errorChannelKey?: string;
+  warningChannelKey?: string;
+  infoChannelKey?: string;
 }

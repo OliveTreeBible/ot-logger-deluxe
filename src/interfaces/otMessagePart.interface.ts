@@ -1,5 +1,5 @@
 export interface IOTMessagePart {
-    name?: string
-    text: string
-    code?: boolean
+  name?: string;
+  text: string;
+  code?: boolean;
 }

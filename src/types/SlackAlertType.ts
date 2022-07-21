@@ -1,6 +1,6 @@
 export enum SlackAlertType {
-    fatal,
-    error,
-    warning,
-    info
+  fatal,
+  error,
+  warning,
+  info,
 }
