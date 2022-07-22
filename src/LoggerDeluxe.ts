@@ -35,23 +35,26 @@ export class OTLoggerDeluxe {
     }
   }
 
-  async logErrorWithErrorPart(logMessage: string, errorPart: any) {
+  async logErrorWithErrorPart(logMessage: string, errorPart: any, postToSlack: boolean = true) {
     await this.logMessageAtLevel(
       LogLevel.Error,
-      OTLogableMessage.CreateWithErrorPart(logMessage, errorPart)
+      OTLogableMessage.CreateWithErrorPart(logMessage, errorPart),
+      postToSlack
     );
   }
 
-  async logError(logMessage: string) {
+  async logError(logMessage: string, postToSlack: boolean = true) {
     await this.logMessageAtLevel(
       LogLevel.Error,
-      OTLogableMessage.Create(logMessage)
+      OTLogableMessage.Create(logMessage),
+      postToSlack
     );
   }
 
   async logMessageAtLevel(
     logLevel: LogLevel,
-    logMessage: string | OTLogableMessage
+    logMessage: string | OTLogableMessage,
+    postToSlack: boolean = true
   ) {
     const logableMessage =
       typeof logMessage === "string"
@@ -66,25 +69,25 @@ export class OTLoggerDeluxe {
         break;
       case LogLevel.Info:
         this._logger.info(() => logableMessage.toString());
-        if (this._slackWebhook) {
+        if (postToSlack && this._slackWebhook) {
           await this._slackWebhook.postInfo(logableMessage);
         }
         break;
       case LogLevel.Warn:
         this._logger.warn(() => logableMessage.toString());
-        if (this._slackWebhook) {
+        if (postToSlack && this._slackWebhook) {
           await this._slackWebhook.postWarning(logableMessage);
         }
         break;
       case LogLevel.Error:
         this._logger.error(() => logableMessage.toString());
-        if (this._slackWebhook) {
+        if (postToSlack && this._slackWebhook) {
           await this._slackWebhook.postError(logableMessage);
         }
         break;
       case LogLevel.Fatal:
         this._logger.fatal(() => logableMessage.toString());
-        if (this._slackWebhook) {
+        if (postToSlack && this._slackWebhook) {
           await this._slackWebhook.postFatal(logableMessage);
         }
         break;
