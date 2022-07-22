@@ -1,4 +1,4 @@
-import { LogLevel } from 'typescript-logging'
+import { LogLevel } from "typescript-logging";
 
 export interface LoggerDeluxeOptions {
   logLevel: string | LogLevel;
