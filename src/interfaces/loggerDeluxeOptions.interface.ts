@@ -1,7 +1,7 @@
-import { LogLevel } from "typescript-logging";
+import { LogLevel } from 'typescript-logging'
 
 export interface LoggerDeluxeOptions {
-  logLevel: LogLevel;
+  logLevel: string | LogLevel;
   logGroupingPattern: string;
   providerName: string;
 }
