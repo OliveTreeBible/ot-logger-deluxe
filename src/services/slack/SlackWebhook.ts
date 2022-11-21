@@ -18,7 +18,7 @@ export class OTSlackWebhook {
       case SlackAlertType.fatal:
         return this._slackIntegrationKeys.keys.fatalChannelKey;
       case SlackAlertType.error:
-        this._slackIntegrationKeys.keys.errorChannelKey;
+        return this._slackIntegrationKeys.keys.errorChannelKey;
       case SlackAlertType.warning:
         return this._slackIntegrationKeys.keys.warningChannelKey;
       case SlackAlertType.info:
