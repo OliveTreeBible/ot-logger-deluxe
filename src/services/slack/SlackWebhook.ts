@@ -1,9 +1,9 @@
-import * as superagent from "superagent";
+import * as superagent from 'superagent'
 
-import { ISlackConfig as IOTSlackConfig } from "../../interfaces/slackConfig.interface";
-import { OTLogableMessage } from "../../OTLogableMessage";
-import { SlackAlertType } from "../../types/SlackAlertType";
-import { SlackBodies } from "./SlackBodies";
+import { ISlackConfig as IOTSlackConfig } from '../../interfaces/slackConfig.interface'
+import { OTLogableMessage } from '../../OTLogableMessage'
+import { SlackAlertType } from '../../types/SlackAlertType'
+import { SlackBodies } from './SlackBodies'
 
 export class OTSlackWebhook {
   private _slackIntegrationKeys: IOTSlackConfig;
@@ -45,7 +45,7 @@ export class OTSlackWebhook {
         .then(() => {
           resolve();
         })
-        .catch((error: any) => {
+        .catch((error: unknown) => {
           console.log(`Failed to send alert to Slack: ${error}`);
           reject();
         });

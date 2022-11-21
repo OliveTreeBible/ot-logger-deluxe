@@ -1,4 +1,4 @@
-import { IOTMessagePart } from "./interfaces/otMessagePart.interface";
+import { IOTMessagePart } from './interfaces/otMessagePart.interface'
 
 export class OTLogableMessage {
   private _messageParts: IOTMessagePart[];
@@ -18,7 +18,7 @@ export class OTLogableMessage {
 
   toString(): string {
     return this._messageParts.reduce(
-      (prev: string, part: IOTMessagePart, c: number, n: IOTMessagePart[]) => {
+      (prev: string, part: IOTMessagePart) => {
         return prev + " - " + this._partToString(part);
       },
       ""
@@ -45,7 +45,7 @@ export class OTLogableMessage {
     else return new OTLogableMessage(message);
   }
 
-  static CreateWithErrorPart(message: string, errorPart: any) {
+  static CreateWithErrorPart(message: string, errorPart: unknown) {
     return new OTLogableMessage([
       { text: message },
       { name: "Upstream Error", text: `${errorPart}` },

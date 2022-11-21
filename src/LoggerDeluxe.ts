@@ -1,10 +1,12 @@
-import { LogLevel } from "typescript-logging";
-import { Log4TSProvider, Logger } from "typescript-logging-log4ts-style";
+import { LogLevel } from 'typescript-logging'
+import { Log4TSProvider, Logger } from 'typescript-logging-log4ts-style'
 
-import { LoggerDeluxeOptions as OTLoggerDeluxeOptions } from "./interfaces/loggerDeluxeOptions.interface";
-import { ISlackConfig } from "./interfaces/slackConfig.interface";
-import { OTLogableMessage } from "./OTLogableMessage";
-import { OTSlackWebhook } from "./services/slack/SlackWebhook";
+import {
+    LoggerDeluxeOptions as OTLoggerDeluxeOptions
+} from './interfaces/loggerDeluxeOptions.interface'
+import { ISlackConfig } from './interfaces/slackConfig.interface'
+import { OTLogableMessage } from './OTLogableMessage'
+import { OTSlackWebhook } from './services/slack/SlackWebhook'
 
 export class OTLoggerDeluxe {
   static log4TSProvider: Log4TSProvider;
@@ -38,8 +40,8 @@ export class OTLoggerDeluxe {
 
   async logErrorWithErrorPart(
     logMessage: string,
-    errorPart: any,
-    postToSlack: boolean = true
+    errorPart: unknown,
+    postToSlack = true
   ) {
     await this.logMessageAtLevel(
       LogLevel.Error,
@@ -48,7 +50,7 @@ export class OTLoggerDeluxe {
     );
   }
 
-  async logError(logMessage: string, postToSlack: boolean = true) {
+  async logError(logMessage: string, postToSlack = true) {
     await this.logMessageAtLevel(
       LogLevel.Error,
       OTLogableMessage.Create(logMessage),
@@ -59,7 +61,7 @@ export class OTLoggerDeluxe {
   async logMessageAtLevel(
     logLevel: LogLevel,
     logMessage: string | OTLogableMessage,
-    postToSlack: boolean = true
+    postToSlack = true
   ) {
     const logableMessage =
       typeof logMessage === "string"
