@@ -1,4 +1,4 @@
-import { IOTMessagePart } from './interfaces/otMessagePart.interface'
+import { IOTMessagePart } from "./interfaces/otMessagePart.interface";
 
 export class OTLogableMessage {
   private _messageParts: IOTMessagePart[];
@@ -17,12 +17,9 @@ export class OTLogableMessage {
   }
 
   toString(): string {
-    return this._messageParts.reduce(
-      (prev: string, part: IOTMessagePart) => {
-        return prev + " - " + this._partToString(part);
-      },
-      ""
-    );
+    return this._messageParts.reduce((prev: string, part: IOTMessagePart) => {
+      return prev + " - " + this._partToString(part);
+    }, "");
   }
 
   partsAsStringArray(): string[] {
