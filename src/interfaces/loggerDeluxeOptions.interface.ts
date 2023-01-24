@@ -1,6 +1,6 @@
-import { LogLevel } from "typescript-logging";
+import { LogLevel } from 'typescript-logging'
 
-export interface LoggerDeluxeOptions {
+export interface OTLoggerDeluxeOptions {
   logLevel: string | LogLevel;
   logGroupingPattern: string;
   providerName: string;

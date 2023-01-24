@@ -1,6 +1,6 @@
 {
   "name": "ot-logger-deluxe",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "A logging system that provides a seemless, unified system for robust logging to a system log as well as to slack. ",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
