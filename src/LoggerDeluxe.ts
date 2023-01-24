@@ -1,9 +1,7 @@
 import { LogLevel } from 'typescript-logging'
 import { Log4TSProvider, Logger } from 'typescript-logging-log4ts-style'
 
-import {
-    LoggerDeluxeOptions as OTLoggerDeluxeOptions
-} from './interfaces/loggerDeluxeOptions.interface'
+import { OTLoggerDeluxeOptions } from './interfaces/loggerDeluxeOptions.interface'
 import { ISlackConfig } from './interfaces/slackConfig.interface'
 import { OTLogableMessage } from './OTLogableMessage'
 import { OTSlackWebhook } from './services/slack/SlackWebhook'
