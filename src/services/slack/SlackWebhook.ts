@@ -1,10 +1,11 @@
-import * as superagent from "superagent";
+import * as superagent from 'superagent'
 
-import { ISlackConfig as IOTSlackConfig } from "../../interfaces/slackConfig.interface";
-import { OTLogableMessage } from "../../OTLogableMessage";
-import { SlackAlertType } from "../../types/SlackAlertType";
-import { SlackBodies } from "./SlackBodies";
+import { ISlackConfig as IOTSlackConfig } from '../../interfaces/slackConfig.interface'
+import { OTLogableMessage } from '../../OTLogableMessage'
+import { SlackAlertType } from '../../types/SlackAlertType'
+import { SlackBodies } from './SlackBodies'
 
+export type ErrorCallback = (error: unknown) => {}
 export class OTSlackWebhook {
   private _slackIntegrationKeys: IOTSlackConfig;
   private _headerText: string;
@@ -52,31 +53,51 @@ export class OTSlackWebhook {
     });
   }
 
-  async postFatal(namedMessages: OTLogableMessage) {
-    await this._postAlert(
-      SlackBodies.fatalBody(this._headerText, namedMessages),
-      SlackAlertType.fatal
-    );
+  async postFatal(namedMessages: OTLogableMessage, onError?: ErrorCallback) {
+    try{
+      await this._postAlert(
+        SlackBodies.fatalBody(this._headerText, namedMessages),
+        SlackAlertType.fatal
+      );
+    } catch (error) {
+      if(onError)
+        onError(error)
+    }
   }
 
-  async postError(namedMessages: OTLogableMessage) {
-    await this._postAlert(
-      SlackBodies.errorBody(this._headerText, namedMessages),
-      SlackAlertType.error
-    );
+  async postError(namedMessages: OTLogableMessage, onError?: ErrorCallback) {
+    try{
+      await this._postAlert(
+        SlackBodies.errorBody(this._headerText, namedMessages),
+        SlackAlertType.error
+      );
+    } catch (error) {
+      if(onError)
+        onError(error)
+    }
   }
 
-  async postWarning(namedMessages: OTLogableMessage) {
-    await this._postAlert(
-      SlackBodies.warningBody(this._headerText, namedMessages),
-      SlackAlertType.warning
-    );
+  async postWarning(namedMessages: OTLogableMessage, onError?: ErrorCallback) {
+    try{
+      await this._postAlert(
+        SlackBodies.warningBody(this._headerText, namedMessages),
+        SlackAlertType.warning
+      );
+    } catch (error) {
+      if(onError)
+        onError(error)
+    }
   }
 
-  async postInfo(namedMessages: OTLogableMessage) {
-    await this._postAlert(
-      SlackBodies.infoBody(this._headerText, namedMessages),
-      SlackAlertType.info
-    );
+  async postInfo(namedMessages: OTLogableMessage, onError?: ErrorCallback) {
+    try{
+      await this._postAlert(
+        SlackBodies.infoBody(this._headerText, namedMessages),
+        SlackAlertType.info
+      );
+    } catch (error) {
+      if(onError)
+        onError(error)
+    }
   }
 }
