@@ -1,6 +1,6 @@
 {
   "name": "ot-logger-deluxe",
-  "version": "1.0.16",
+  "version": "1.0.18",
   "description": "A logging system that provides a seemless, unified system for robust logging to a system log as well as to slack. ",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -31,16 +31,16 @@
   },
   "homepage": "https://github.com/OliveTreeBible/ot-logger-deluxe#readme",
   "dependencies": {
-    "@types/node": "^18.11.9",
-    "@types/superagent": "^8.1.6",
+    "@types/node": "^22.10.2",
+    "@types/superagent": "^8.1.9",
     "moment": "^2.29.4",
-    "superagent": "^9.0.0",
+    "superagent": "^10.1.1",
     "typescript-logging": "^2.0.2",
     "typescript-logging-log4ts-style": "^2.0.2"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.43.0",
-    "@typescript-eslint/parser": "^5.43.0",
-    "eslint": "^8.28.0"
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "eslint": "^9.17.0"
   }
 }
