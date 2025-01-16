@@ -1,10 +1,10 @@
-import { LogLevel } from "typescript-logging";
-import { Log4TSProvider, Logger } from "typescript-logging-log4ts-style";
+import { LogLevel } from 'typescript-logging'
+import { Log4TSProvider, Logger } from 'typescript-logging-log4ts-style'
 
-import { OTLoggerDeluxeOptions } from "./interfaces/loggerDeluxeOptions.interface";
-import { ISlackConfig } from "./interfaces/slackConfig.interface";
-import { OTLogableMessage } from "./OTLogableMessage";
-import { OTSlackWebhook } from "./services/slack/SlackWebhook";
+import { OTLoggerDeluxeOptions } from './interfaces/loggerDeluxeOptions.interface'
+import { ISlackConfig } from './interfaces/slackConfig.interface'
+import { OTLogableMessage } from './OTLogableMessage'
+import { OTSlackWebhook } from './services/slack/SlackWebhook'
 
 export class OTLoggerDeluxe {
   static log4TSProvider: Log4TSProvider;
@@ -13,7 +13,7 @@ export class OTLoggerDeluxe {
   constructor(
     loggerOptions: OTLoggerDeluxeOptions,
     loggerName: string,
-    slackIntegration: ISlackConfig
+    slackIntegration?: ISlackConfig
   ) {
     if (OTLoggerDeluxe.log4TSProvider === undefined)
       OTLoggerDeluxe.log4TSProvider = Log4TSProvider.createProvider(
@@ -48,9 +48,49 @@ export class OTLoggerDeluxe {
     );
   }
 
+  async logTrace(logMessage: string) {
+    await this.logMessageAtLevel(
+      LogLevel.Trace,
+      OTLogableMessage.Create(logMessage),
+      false
+    );
+  }
+
+  async logDebug(logMessage: string) {
+    await this.logMessageAtLevel(
+      LogLevel.Debug,
+      OTLogableMessage.Create(logMessage),
+      false
+    );
+  }
+
+  async logInfo(logMessage: string, postToSlack = true) {
+    await this.logMessageAtLevel(
+      LogLevel.Info,
+      OTLogableMessage.Create(logMessage),
+      postToSlack
+    );
+  }
+
+  async logWarning(logMessage: string, postToSlack = true) {
+    await this.logMessageAtLevel(
+      LogLevel.Warn,
+      OTLogableMessage.Create(logMessage),
+      postToSlack
+    );
+  }
+
   async logError(logMessage: string, postToSlack = true) {
     await this.logMessageAtLevel(
       LogLevel.Error,
+      OTLogableMessage.Create(logMessage),
+      postToSlack
+    );
+  }
+
+  async logFatal(logMessage: string, postToSlack = true) {
+    await this.logMessageAtLevel(
+      LogLevel.Fatal,
       OTLogableMessage.Create(logMessage),
       postToSlack
     );
