@@ -1,9 +1,20 @@
-export * from "./interfaces/loggerDeluxeOptions.interface";
-export * from "./interfaces/otMessagePart.interface";
-export * from "./interfaces/slackConfig.interface";
-export * from "./types/SlackAlertType";
-export * from "./services/slack/SlackWebhook";
-export * from "./services/slack/SlackBodies";
-export * from "./LoggerDeluxe";
-export * from "./OTLogableMessage";
-export { LogLevel } from "typescript-logging";
+export { Logger, createLogger } from "./Logger.js";
+export { MessageBuilder } from "./MessageBuilder.js";
+export { createLoggerFromEnv } from "./config/env.js";
+
+export type {
+  Field,
+  FieldMap,
+  LogLevel,
+  LogOptions,
+  LoggerOptions,
+  SlackOptions,
+  SlackPostOptions,
+  SlackRetryOptions,
+  SlackWebApiOptions,
+  SlackableLevel,
+  SyslogTransportOptions,
+  TransportOptions,
+} from "./types.js";
+
+export { LOG_LEVEL_VALUES } from "./types.js";

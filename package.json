@@ -1,19 +1,43 @@
 {
   "name": "ot-logger-deluxe",
-  "version": "1.1.2",
-  "description": "A logging system that provides a seemless, unified system for robust logging to a system log as well as to slack. ",
-  "main": "lib/index.js",
-  "types": "lib/index.d.ts",
+  "version": "2.0.0",
+  "description": "Ergonomic, structured JSON logging with optional Slack notifications. Powered by pino.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "import": "./dist/index.d.ts",
+        "require": "./dist/index.d.cts"
+      },
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "lint": "eslint --fix tsconfig.json",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run lint",
-    "preversion": "npm run lint",
-    "version": "npm run format && git add -A src",
-    "postversion": "git push && git push --tags"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "lint:fix": "eslint --fix \"src/**/*.ts\" \"test/**/*.ts\"",
+    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run build"
   },
   "repository": {
     "type": "git",
@@ -21,9 +45,14 @@
   },
   "keywords": [
     "logging",
-    "slack"
+    "logger",
+    "pino",
+    "slack",
+    "structured-logging",
+    "json-logging",
+    "cloudwatch",
+    "observability"
   ],
-  "private": false,
   "author": "David Trotz",
   "license": "MIT",
   "bugs": {
@@ -31,16 +60,32 @@
   },
   "homepage": "https://github.com/OliveTreeBible/ot-logger-deluxe#readme",
   "dependencies": {
-    "@types/node": "^22.13.0",
-    "@types/superagent": "^8.1.9",
-    "moment": "^2.30.0",
-    "superagent": "^10.1.1",
-    "typescript-logging": "^2.2.0",
-    "typescript-logging-log4ts-style": "^2.2.0"
+    "@slack/types": "^2.20.1",
+    "pino": "^10.3.1"
+  },
+  "optionalDependencies": {
+    "pino-pretty": "^13.1.3",
+    "pino-socket": "^8.0.0",
+    "pino-syslog": "^4.0.0"
+  },
+  "peerDependencies": {
+    "@slack/web-api": "^7.15.1"
+  },
+  "peerDependenciesMeta": {
+    "@slack/web-api": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.23.0",
-    "@typescript-eslint/parser": "^8.23.0",
-    "eslint": "^9.19.0"
+    "@slack/web-api": "^7.15.1",
+    "@types/node": "^25.6.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
+    "@vitest/coverage-v8": "^4.1.5",
+    "eslint": "^10.2.1",
+    "prettier": "^3.8.3",
+    "tsup": "^8.5.1",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.5"
   }
 }
