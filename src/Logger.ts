@@ -59,18 +59,17 @@ export class Logger {
 
   /**
    * Return a child logger with additional bindings merged into every record.
-   * The Slack transport is shared.
+   * The Slack transport is shared with the parent.
    */
   child(bindings: Record<string, unknown>): Logger {
-    const childPino = this.pino.child(bindings);
-    const child = Object.create(Logger.prototype) as Logger;
-    Object.assign(child, {
-      pino: childPino,
-      slack: this.slack,
-      hostname: this.hostname,
-      name: this.name,
-    });
-    return child;
+    // Go through the real constructor rather than Object.create to preserve
+    // invariants. We pass the already-built pino child and the parent's
+    // SlackTransport directly so the constructor won't rebuild either.
+    return new Logger(
+      { name: this.name, hostname: this.hostname, level: this.level },
+      this.pino.child(bindings),
+      this.slack
+    );
   }
 
   /** Current log level (e.g. "info"). */

@@ -42,12 +42,8 @@ export class WebhookClient {
     let lastStatus: number | undefined;
 
     for (let attempt = 1; attempt <= this.attempts; attempt++) {
+      const { signal, cleanup } = createTimeout(this.timeoutMs);
       try {
-        const signal =
-          typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function"
-            ? AbortSignal.timeout(this.timeoutMs)
-            : createTimeoutSignal(this.timeoutMs);
-
         const res = await this.fetchImpl(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -79,6 +75,10 @@ export class WebhookClient {
 
         this.onRetry?.({ attempt, error: err });
         await sleep(this.backoff(attempt));
+      } finally {
+        // Always cancel the pending timeout so completed fetches don't leave
+        // timers pending in high-volume scenarios.
+        cleanup();
       }
     }
 
@@ -112,8 +112,23 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function createTimeoutSignal(ms: number): AbortSignal {
+/**
+ * Build an AbortSignal that aborts after `ms` and a `cleanup()` the caller
+ * invokes (in a `finally`) to clear the pending timer once the request is
+ * done. This prevents a timer accumulation leak under high log volume that
+ * `AbortSignal.timeout()` cannot avoid (its internal timer can't be cleared
+ * from userland).
+ */
+function createTimeout(ms: number): { signal: AbortSignal; cleanup: () => void } {
   const controller = new AbortController();
-  setTimeout(() => controller.abort(new Error("timeout")), ms).unref?.();
-  return controller.signal;
+  const timer: ReturnType<typeof setTimeout> = setTimeout(
+    () => controller.abort(new Error("timeout")),
+    ms
+  );
+  // Don't keep the event loop alive just for a webhook timeout.
+  timer.unref?.();
+  return {
+    signal: controller.signal,
+    cleanup: () => clearTimeout(timer),
+  };
 }

@@ -133,4 +133,48 @@ describe("WebhookClient", () => {
     expect(res.attempts).toBe(2);
     expect(res.status).toBe(502);
   });
+
+  it("cancels the per-attempt timeout once the fetch resolves (no timer leak)", async () => {
+    // Track every setTimeout/clearTimeout so we can assert the send() call
+    // doesn't leave pending timers behind in the high-volume path.
+    const originalSetTimeout = globalThis.setTimeout;
+    const originalClearTimeout = globalThis.clearTimeout;
+    const pending = new Set<ReturnType<typeof setTimeout>>();
+
+    globalThis.setTimeout = ((
+      fn: (...args: unknown[]) => void,
+      ms?: number,
+      ...args: unknown[]
+    ) => {
+      const handle = originalSetTimeout(fn, ms, ...args);
+      pending.add(handle);
+      return handle;
+    }) as typeof setTimeout;
+    globalThis.clearTimeout = ((handle: ReturnType<typeof setTimeout>) => {
+      pending.delete(handle);
+      return originalClearTimeout(handle);
+    }) as typeof clearTimeout;
+
+    try {
+      const client = new WebhookClient({
+        attempts: 1,
+        timeoutMs: 60_000,
+        fetchImpl: async () => fakeResponse(200),
+      });
+
+      const before = pending.size;
+      await client.send("https://hooks.slack.com/services/x", {
+        text: "hi",
+        blocks: [],
+      });
+      const after = pending.size;
+
+      // The only new pending timer introduced by send() should have been
+      // cleared by the finally-block cleanup.
+      expect(after).toBe(before);
+    } finally {
+      globalThis.setTimeout = originalSetTimeout;
+      globalThis.clearTimeout = originalClearTimeout;
+    }
+  });
 });

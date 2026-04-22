@@ -119,6 +119,31 @@ describe("Logger", () => {
     expect(records[0]).toMatchObject({ msg: "hi", requestId: "abc", name: "svc" });
   });
 
+  it("child() returns a real Logger instance with all level methods", () => {
+    const { logger } = createCapturingLogger({ name: "svc" });
+    const child = logger.child({ requestId: "abc" });
+
+    // Guards against accidental regressions to manual prototype manipulation:
+    // child must be a genuine Logger so typeof/instanceof checks and method
+    // dispatch all work correctly.
+    expect(child).toBeInstanceOf(logger.constructor);
+    expect(typeof child.info).toBe("function");
+    expect(typeof child.warn).toBe("function");
+    expect(typeof child.error).toBe("function");
+    expect(typeof child.fatal).toBe("function");
+    expect(typeof child.debug).toBe("function");
+    expect(typeof child.trace).toBe("function");
+    expect(typeof child.message).toBe("function");
+    expect(typeof child.setLevel).toBe("function");
+    expect(typeof child.child).toBe("function");
+  });
+
+  it("child() inherits the parent's current level", () => {
+    const { logger } = createCapturingLogger({ name: "svc", level: "warn" });
+    const child = logger.child({ requestId: "abc" });
+    expect(child.level).toBe("warn");
+  });
+
   it("supports runtime level changes", async () => {
     const { logger, records } = createCapturingLogger({ name: "svc", level: "error" });
 
