@@ -123,6 +123,24 @@ describe("SlackTransport routing", () => {
     expect(hasMention).toBe(true);
   });
 
+  it("honors a per-message webhook URL override even when no webhook is configured statically", async () => {
+    // Previously, SlackTransport only constructed WebhookClient when the
+    // static options included a webhook, so a per-message URL override on a
+    // Web-API-only (or unconfigured) transport would resolve a valid URL but
+    // silently drop the send. This test guards against that regression.
+    const { transport, sent } = makeTransport({});
+
+    await transport.post({
+      level: "error",
+      message: "x",
+      fields: [],
+      channelOverride: "https://hooks.example.com/only-via-override",
+    });
+
+    expect(sent).toHaveLength(1);
+    expect(sent[0]!.url).toBe("https://hooks.example.com/only-via-override");
+  });
+
   it("reports failures via onTransportError, does not throw", async () => {
     const onTransportError = vi.fn();
     const transport = new SlackTransport(

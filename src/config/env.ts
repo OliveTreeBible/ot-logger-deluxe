@@ -8,12 +8,20 @@ import type {
   TransportOptions,
 } from "../types.js";
 
+/**
+ * Shape of the env-var source accepted by {@link createLoggerFromEnv}. This
+ * is intentionally narrower than `NodeJS.ProcessEnv` so the API is portable
+ * (no dependency on Node ambient types) and plain objects like
+ * `{ LOG_LEVEL: "info" }` work with no casts under `strict: true`.
+ */
+export type EnvSource = Readonly<Record<string, string | undefined>>;
+
 export interface CreateLoggerFromEnvOverrides extends Partial<LoggerOptions> {
   /**
    * Source of environment variables. Defaults to `process.env`.
    * Useful for tests or for loading from a `dotenv`-parsed object.
    */
-  env?: NodeJS.ProcessEnv;
+  env?: EnvSource;
 }
 
 const LEVEL_SUFFIXES: Record<SlackableLevel, string> = {
@@ -96,7 +104,7 @@ function parseBool(value: string | undefined): boolean | undefined {
   return undefined;
 }
 
-function slackFromEnv(env: NodeJS.ProcessEnv): SlackOptions | undefined {
+function slackFromEnv(env: EnvSource): SlackOptions | undefined {
   const defaultWebhookUrl = env.SLACK_WEBHOOK_URL;
   const channels: Partial<Record<SlackableLevel, string>> = {};
   const mention: Partial<Record<SlackableLevel, string>> = {};
@@ -138,7 +146,7 @@ function slackFromEnv(env: NodeJS.ProcessEnv): SlackOptions | undefined {
   return slack;
 }
 
-function transportsFromEnv(env: NodeJS.ProcessEnv): TransportOptions | undefined {
+function transportsFromEnv(env: EnvSource): TransportOptions | undefined {
   const transports: TransportOptions = {};
 
   if (env.LOG_FILE) {

@@ -29,20 +29,23 @@ export interface SlackPostArgs {
 export class SlackTransport {
   private readonly options: SlackOptions;
   private readonly ctx: SlackTransportContext;
-  private readonly webhookClient?: WebhookClient;
+  private readonly webhookClient: WebhookClient;
   private readonly webApiClient?: WebApiClient;
 
   constructor(options: SlackOptions, ctx: SlackTransportContext) {
     this.options = options;
     this.ctx = ctx;
 
-    if (this.hasAnyWebhook()) {
-      this.webhookClient = new WebhookClient({
-        attempts: options.retry?.attempts,
-        baseDelayMs: options.retry?.baseDelayMs,
-        timeoutMs: options.retry?.timeoutMs,
-      });
-    }
+    // Always construct the WebhookClient: it holds no handles until send() is
+    // called, and per-message slack: { channel: "https://hooks.slack..." }
+    // overrides can resolve a valid webhook URL even when no webhook is set
+    // in the static options. Conditional construction would silently drop
+    // those sends.
+    this.webhookClient = new WebhookClient({
+      attempts: options.retry?.attempts,
+      baseDelayMs: options.retry?.baseDelayMs,
+      timeoutMs: options.retry?.timeoutMs,
+    });
 
     if (options.webApi?.token) {
       this.webApiClient = new WebApiClient({ token: options.webApi.token });
@@ -83,7 +86,7 @@ export class SlackTransport {
 
     const sends: Promise<void>[] = [];
 
-    if (webhookUrl && this.webhookClient) {
+    if (webhookUrl) {
       sends.push(
         this.webhookClient.send(webhookUrl, slackMessage).then((res) => {
           if (!res.ok) {
@@ -139,12 +142,6 @@ export class SlackTransport {
     return webApi.channels?.[level] ?? webApi.defaultChannel;
   }
 
-  private hasAnyWebhook(): boolean {
-    if (this.options.defaultWebhookUrl) return true;
-    const channels = this.options.channels;
-    if (!channels) return false;
-    return Object.values(channels).some((v) => typeof v === "string" && v.length > 0);
-  }
 }
 
 function isHttpUrl(value: string): boolean {
