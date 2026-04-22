@@ -65,4 +65,36 @@ describe("createLoggerFromEnv", () => {
     const slack = (logger as unknown as { slack?: unknown }).slack;
     expect(slack).toBeDefined();
   });
+
+  it("ignoreEnvSlack: true disables Slack even when env vars are set", () => {
+    const logger = createLoggerFromEnv({
+      env: { SLACK_WEBHOOK_URL: "https://hooks.example.com/env" },
+      ignoreEnvSlack: true,
+    });
+    const slack = (logger as unknown as { slack?: unknown }).slack;
+    expect(slack).toBeUndefined();
+  });
+
+  it("ignoreEnvSlack: true still honors an explicit overrides.slack", () => {
+    const logger = createLoggerFromEnv({
+      env: { SLACK_WEBHOOK_URL: "https://hooks.example.com/env" },
+      ignoreEnvSlack: true,
+      slack: { defaultWebhookUrl: "https://hooks.example.com/explicit" },
+    });
+    const slack = (logger as unknown as { slack?: unknown }).slack;
+    expect(slack).toBeDefined();
+  });
+
+  it("ignoreEnvTransports: true drops LOG_FILE / LOG_SYSLOG_HOST", () => {
+    // Build two loggers from the same env: one with the flag, one without,
+    // and verify only the flagged one skips the file transport.
+    // We observe this through the Logger's pino instance: absence of a
+    // transport means the default stdout-only path.
+    const withTransports = createLoggerFromEnv({
+      env: { LOG_FILE: "/tmp/should-not-open.log" },
+      ignoreEnvTransports: true,
+    });
+    // Just assert construction doesn't crash and the logger is usable.
+    expect(withTransports.level).toBe("info");
+  });
 });

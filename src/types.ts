@@ -96,8 +96,16 @@ export interface LogOptions {
 /** Explicit per-message Slack routing/formatting overrides. */
 export interface SlackPostOptions {
   /**
-   * Override the destination. For webhooks, this is a URL or a key in
-   * `slack.channels`. For the Web API, this is a channel id/name.
+   * Override the destination.
+   *
+   * For webhooks, accepts either:
+   *   - a full Incoming Webhook URL (`https://hooks.slack.com/services/...`),
+   *     used as-is; or
+   *   - one of the {@link SlackableLevel} names (`"info" | "warn" | "error" | "fatal"`)
+   *     which is resolved through the matching entry in `slack.channels`.
+   *
+   * For the Slack Web API transport, this is a channel id/name (e.g. `"#alerts"`
+   * or `"C0123"`) and is passed straight through to `chat.postMessage`.
    */
   channel?: string;
 

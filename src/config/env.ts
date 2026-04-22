@@ -22,6 +22,20 @@ export interface CreateLoggerFromEnvOverrides extends Partial<LoggerOptions> {
    * Useful for tests or for loading from a `dotenv`-parsed object.
    */
   env?: EnvSource;
+
+  /**
+   * When true, every Slack-related env var (`SLACK_*`) is ignored and only
+   * `overrides.slack` (if any) is honored. Use this to explicitly disable
+   * Slack in environments whose process env happens to include Slack
+   * configuration (e.g. staging, tests, CI).
+   */
+  ignoreEnvSlack?: boolean;
+
+  /**
+   * When true, transport-related env vars (`LOG_FILE`, `LOG_SYSLOG_*`) are
+   * ignored and only `overrides.transports` (if any) is honored.
+   */
+  ignoreEnvTransports?: boolean;
 }
 
 const LEVEL_SUFFIXES: Record<SlackableLevel, string> = {
@@ -80,10 +94,17 @@ export function createLoggerFromEnv(overrides: CreateLoggerFromEnvOverrides = {}
     bindings: overrides.bindings,
   };
 
-  const slack = overrides.slack ?? slackFromEnv(env);
+  // Slack: explicit override wins. Otherwise read from env, unless the
+  // caller has opted out via `ignoreEnvSlack`.
+  const slack =
+    overrides.slack ?? (overrides.ignoreEnvSlack ? undefined : slackFromEnv(env));
   if (slack) options.slack = slack;
 
-  const transports = mergeTransports(overrides.transports, transportsFromEnv(env));
+  // Transports: merge overrides.transports over env-derived values, unless
+  // the caller has opted out via `ignoreEnvTransports`.
+  const transports = overrides.ignoreEnvTransports
+    ? overrides.transports
+    : mergeTransports(overrides.transports, transportsFromEnv(env));
   if (transports) options.transports = transports;
 
   return createLogger(options);
