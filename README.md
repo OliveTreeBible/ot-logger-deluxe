@@ -186,6 +186,25 @@ slack: {
 }
 ```
 
+### Delivery model (fire-and-forget)
+
+`log.<level>(..., { slack: true })` returns to the caller as soon as the
+pino record has been written locally. The Slack send runs in the background
+so your request isn't blocked by retries, timeouts, or `Retry-After` delays
+(which can add up to tens of seconds in the worst case).
+
+If you need to guarantee Slack delivery before the process exits (graceful
+shutdown, tests, CLIs), call `await logger.flush()` — it drains every
+in-flight Slack send and then flushes pino's transports:
+
+```ts
+process.on("SIGTERM", async () => {
+  await log.fatal("shutting down", { slack: true });
+  await log.flush(); // waits for Slack + pino
+  process.exit(0);
+});
+```
+
 ### Per-message overrides
 
 ```ts

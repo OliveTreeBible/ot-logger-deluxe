@@ -106,8 +106,15 @@ export class Logger {
     return this.log("fatal", msg, opts);
   }
 
-  /** Flush any buffered transports and return once done. */
+  /**
+   * Wait for every in-flight Slack send to settle, then flush pino's
+   * buffered transports. Call this at graceful shutdown (or in tests) when
+   * you need to know that fire-and-forget Slack deliveries have completed.
+   */
   async flush(): Promise<void> {
+    if (this.slack) {
+      await this.slack.drained();
+    }
     const flushFn = this.pino.flush;
     if (typeof flushFn !== "function") return;
     await new Promise<void>((resolve) => {
@@ -144,11 +151,12 @@ export class Logger {
       record.code = opts.code;
     }
 
-    const pinoFn = this.pino[level === "trace" ? "trace" : level].bind(this.pino);
+    // Direct property-access call keeps `this` correct without allocating a
+    // new bound function on every log (this is on the hot path).
     if (Object.keys(record).length > 0) {
-      pinoFn(record, msg);
+      this.pino[level](record, msg);
     } else {
-      pinoFn(msg);
+      this.pino[level](msg);
     }
 
     if (!this.slack || !SLACKABLE_LEVELS.has(level) || !opts.slack) return;
@@ -156,8 +164,13 @@ export class Logger {
     const slackableLevel = level as SlackableLevel;
     const post = opts.slack === true ? undefined : opts.slack;
 
-    try {
-      await this.slack.post({
+    // Fire-and-forget: SlackTransport tracks the send internally so
+    // `logger.flush()` can await completion at shutdown. Awaiting here would
+    // block the caller for up to the full retry budget on failures, which
+    // would contradict the library's "Slack never blocks your request"
+    // contract.
+    void this.slack
+      .post({
         level: slackableLevel,
         message: msg,
         fields,
@@ -165,10 +178,11 @@ export class Logger {
         code: typeof opts.code === "string" ? opts.code : undefined,
         channelOverride: post?.channel,
         mentionOverride: post?.mention,
+      })
+      .catch(() => {
+        // SlackTransport already routes errors to pino.warn via
+        // onTransportError; nothing to do here.
       });
-    } catch {
-      // SlackTransport already routes errors to pino.warn; never throw from a log call.
-    }
   }
 
   /** @internal */

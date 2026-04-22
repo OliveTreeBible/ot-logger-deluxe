@@ -31,6 +31,12 @@ export class SlackTransport {
   private readonly ctx: SlackTransportContext;
   private readonly webhookClient: WebhookClient;
   private readonly webApiClient?: WebApiClient;
+  /**
+   * In-flight sends. `Logger.log()` fires sends without awaiting them so the
+   * caller isn't blocked on retries; `drained()` lets a user await completion
+   * at shutdown / test time.
+   */
+  private readonly pending: Set<Promise<void>> = new Set();
 
   constructor(options: SlackOptions, ctx: SlackTransportContext) {
     this.options = options;
@@ -50,6 +56,16 @@ export class SlackTransport {
     if (options.webApi?.token) {
       this.webApiClient = new WebApiClient({ token: options.webApi.token });
     }
+  }
+
+  /**
+   * Resolve once every in-flight Slack send has settled (ok or failed).
+   * `Logger.flush()` calls this at shutdown; most application code never
+   * needs it directly.
+   */
+  async drained(): Promise<void> {
+    if (this.pending.size === 0) return;
+    await Promise.allSettled([...this.pending]);
   }
 
   /** True if at least one destination can be resolved for the given level. */
@@ -115,8 +131,17 @@ export class SlackTransport {
       );
     }
 
-    if (sends.length > 0) {
-      await Promise.all(sends);
+    if (sends.length === 0) return;
+
+    // Track the aggregated send so `drained()` can await it, but resolve the
+    // outer `post()` promise when all sends finish so callers that *want* to
+    // await a specific message's delivery (tests, shutdown) still can.
+    const all = Promise.all(sends).then(() => undefined);
+    this.pending.add(all);
+    try {
+      await all;
+    } finally {
+      this.pending.delete(all);
     }
   }
 

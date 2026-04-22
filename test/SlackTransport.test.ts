@@ -141,6 +141,43 @@ describe("SlackTransport routing", () => {
     expect(sent[0]!.url).toBe("https://hooks.example.com/only-via-override");
   });
 
+  it("drained() awaits in-flight post() calls so callers can flush at shutdown", async () => {
+    const { transport } = makeTransport({
+      defaultWebhookUrl: "https://hooks.example.com/d",
+    });
+
+    // Slow the fetch so we can observe in-flight bookkeeping.
+    let resolveFetch!: () => void;
+    const fetchGate = new Promise<void>((resolve) => {
+      resolveFetch = resolve;
+    });
+    const client = transport as unknown as { webhookClient: { fetchImpl: typeof fetch } };
+    client.webhookClient.fetchImpl = (async () => {
+      await fetchGate;
+      return new Response(null, { status: 200 });
+    }) as unknown as typeof fetch;
+
+    // Fire-and-forget (mirrors what Logger.log() now does).
+    const sendPromise = transport.post({ level: "error", message: "x", fields: [] });
+
+    let drainedSettled = false;
+    const drainedPromise = transport.drained().then(() => {
+      drainedSettled = true;
+    });
+
+    // drained() must not resolve until the in-flight send does.
+    await new Promise((r) => setTimeout(r, 10));
+    expect(drainedSettled).toBe(false);
+
+    resolveFetch();
+    await sendPromise;
+    await drainedPromise;
+    expect(drainedSettled).toBe(true);
+
+    // After draining, the pending set is empty and a fresh drained() is a no-op.
+    await transport.drained();
+  });
+
   it("reports failures via onTransportError, does not throw", async () => {
     const onTransportError = vi.fn();
     const transport = new SlackTransport(
