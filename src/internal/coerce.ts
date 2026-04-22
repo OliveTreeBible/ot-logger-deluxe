@@ -78,6 +78,17 @@ export function isField(value: unknown): value is Field {
  * Normalize a FieldMap into an ordered array of NormalizedFields.
  * `defaultCode` applies the `code` flag to every entry that doesn't override it.
  */
+/**
+ * Prepare a raw field value for JSON logging. Error instances are expanded
+ * into `{ type, message, stack, ... }` here because otherwise pino receives
+ * them as opaque objects and `JSON.stringify` drops the (non-enumerable)
+ * Error properties, yielding `{}` in the output.
+ */
+function coerceRaw(value: unknown): unknown {
+  if (value instanceof Error) return serializeError(value);
+  return value;
+}
+
 export function normalizeFields(fields: FieldMap | undefined, defaultCode = false): NormalizedField[] {
   if (!fields) return [];
   const result: NormalizedField[] = [];
@@ -85,14 +96,14 @@ export function normalizeFields(fields: FieldMap | undefined, defaultCode = fals
     if (isField(input)) {
       result.push({
         name,
-        raw: input.value,
+        raw: coerceRaw(input.value),
         value: stringify(input.value),
         code: input.code ?? defaultCode,
       });
     } else {
       result.push({
         name,
-        raw: input,
+        raw: coerceRaw(input),
         value: stringify(input),
         code: defaultCode,
       });

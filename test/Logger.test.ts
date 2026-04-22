@@ -81,6 +81,20 @@ describe("Logger", () => {
     expect(typeof (rec.err as { stack?: string }).stack).toBe("string");
   });
 
+  it("expands Error values passed as plain fields (not just opts.error)", async () => {
+    // Regression: a raw Error in `fields.*` used to JSON.stringify to {}
+    // because Error properties are non-enumerable.
+    const { logger, records } = createCapturingLogger({ name: "svc" });
+    const upstream = new RangeError("out of bounds");
+
+    await logger.warn("caught", { fields: { cause: upstream } });
+
+    const cause = records[0]!.cause as Record<string, unknown>;
+    expect(cause.type).toBe("RangeError");
+    expect(cause.message).toBe("out of bounds");
+    expect(typeof cause.stack).toBe("string");
+  });
+
   it("captures code blocks on the `code` field", async () => {
     const { logger, records } = createCapturingLogger({ name: "svc" });
 

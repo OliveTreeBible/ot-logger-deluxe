@@ -46,4 +46,30 @@ describe("normalizeFields with stricter isField", () => {
     expect(result[0]!.raw).toBe(42);
     expect(result[0]!.code).toBe(true);
   });
+
+  it("expands plain-field Error values so JSON.stringify doesn't drop their properties", () => {
+    // Regression: Error props (name/message/stack) are non-enumerable, so
+    // passing a raw Error through pino would otherwise serialize to {}.
+    const err = new TypeError("boom");
+    const result = normalizeFields({ cause: err });
+    expect(result).toHaveLength(1);
+
+    const raw = result[0]!.raw as Record<string, unknown>;
+    expect(raw.type).toBe("TypeError");
+    expect(raw.message).toBe("boom");
+    expect(typeof raw.stack).toBe("string");
+
+    // And crucially, it survives JSON.stringify now.
+    const roundtrip = JSON.parse(JSON.stringify(raw)) as Record<string, unknown>;
+    expect(roundtrip.type).toBe("TypeError");
+    expect(roundtrip.message).toBe("boom");
+  });
+
+  it("also expands Error values nested inside Field wrappers", () => {
+    const err = new Error("wrapped");
+    const result = normalizeFields({ cause: { value: err, code: false } });
+    const raw = result[0]!.raw as Record<string, unknown>;
+    expect(raw.type).toBe("Error");
+    expect(raw.message).toBe("wrapped");
+  });
 });

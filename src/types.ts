@@ -40,7 +40,9 @@ export type SlackableLevel = "info" | "warn" | "error" | "fatal";
  *
  * Values are coerced safely for both JSON and Slack rendering:
  *   - `Date`            -> ISO 8601 string
- *   - `Error`           -> { name, message, stack } (JSON) / formatted text (Slack)
+ *   - `Error`           -> `{ type, message, stack, cause?, ... }` in JSON
+ *                          (pino's `err` serializer convention); formatted
+ *                          text in Slack
  *   - primitives        -> `String(value)`
  *   - objects / arrays  -> `JSON.stringify(value)` with size caps
  *
