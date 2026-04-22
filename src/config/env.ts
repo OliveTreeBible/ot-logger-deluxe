@@ -119,7 +119,10 @@ function slackFromEnv(env: NodeJS.ProcessEnv): SlackOptions | undefined {
   }
 
   const hasWebhook = defaultWebhookUrl || Object.keys(channels).length > 0;
-  const hasWebApi = botToken && (defaultChannel || Object.keys(webApiChannels).length > 0);
+  // A bot token alone is enough to enable the Web API path; callers can still
+  // supply a destination per-message via `slack: { channel: ... }`, which
+  // SlackTransport.resolveWebApiChannel() honors even when no default is set.
+  const hasWebApi = Boolean(botToken);
 
   if (!hasWebhook && !hasWebApi) return undefined;
 

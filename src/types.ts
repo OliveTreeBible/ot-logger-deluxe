@@ -66,7 +66,13 @@ export interface LogOptions {
   /** Attach an Error. Serialized to { name, message, stack } in JSON and shown as a "Stack" field in Slack. */
   error?: unknown;
 
-  /** Render a large block of code / stack / SQL / etc as a Slack `mrkdwn` code block. */
+  /**
+   * Either:
+   *   - a string: attach a large block of code / stack / SQL / etc rendered
+   *     as a Slack `mrkdwn` fenced code block; or
+   *   - `true`: shorthand meaning "render every field's value as Slack inline
+   *     code", equivalent to setting `{ code: true }` on every entry in `fields`.
+   */
   code?: string | boolean;
 
   /**

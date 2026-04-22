@@ -53,4 +53,16 @@ describe("createLoggerFromEnv", () => {
     });
     expect(logger.level).toBe("trace");
   });
+
+  it("enables Slack Web API with only SLACK_BOT_TOKEN (no default channel)", () => {
+    // Callers can still specify a channel per-message via slack: { channel },
+    // which SlackTransport.resolveWebApiChannel() honors. The previous
+    // behavior required SLACK_CHANNEL* to also be set, which blocked the
+    // per-message-only use case.
+    const logger = createLoggerFromEnv({
+      env: { SLACK_BOT_TOKEN: "xoxb-test" },
+    });
+    const slack = (logger as unknown as { slack?: unknown }).slack;
+    expect(slack).toBeDefined();
+  });
 });

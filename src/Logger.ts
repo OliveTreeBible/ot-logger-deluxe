@@ -130,7 +130,10 @@ export class Logger {
   async log(level: LogLevel, msg: string, opts: LogOptions = {}): Promise<void> {
     if (level === "silent") return;
 
-    const fields = normalizeFields(opts.fields);
+    // `code: true` is a shorthand for "wrap every field value in inline code"
+    // on the Slack side; a string value becomes a fenced code block instead.
+    const defaultFieldCode = opts.code === true;
+    const fields = normalizeFields(opts.fields, defaultFieldCode);
     const record: Record<string, unknown> = { ...fieldsToRecord(fields) };
 
     if (opts.error !== undefined) {

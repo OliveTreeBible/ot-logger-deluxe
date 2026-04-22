@@ -89,6 +89,27 @@ describe("Logger", () => {
     expect(records[0]!.code).toBe("select 1");
   });
 
+  it("treats `code: true` as a shorthand for 'inline-code every field'", async () => {
+    // The JSON record doesn't show inline-code formatting (that's Slack-only),
+    // so we assert on the normalized Field shape that reaches the Slack path.
+    const normalizeModule = await import("../src/internal/coerce.js");
+    const fields = normalizeModule.normalizeFields(
+      { action_id: 1, group_name: "beta" },
+      true
+    );
+    expect(fields.every((f) => f.code === true)).toBe(true);
+
+    // End-to-end: the call must not throw and must emit one record.
+    const { logger, records } = createCapturingLogger({ name: "svc" });
+    await logger.warn("inactive", {
+      fields: { action_id: 1, group_name: "beta" },
+      code: true,
+    });
+    expect(records).toHaveLength(1);
+    // `code: true` must NOT leak a stray `code` string into the JSON output.
+    expect(records[0]!.code).toBeUndefined();
+  });
+
   it("child loggers merge bindings into every record", async () => {
     const { logger, records } = createCapturingLogger({ name: "svc" });
     const child = logger.child({ requestId: "abc" });
