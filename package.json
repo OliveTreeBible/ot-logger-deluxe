@@ -1,6 +1,6 @@
 {
   "name": "ot-logger-deluxe",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Ergonomic, structured JSON logging with optional Slack notifications. Powered by pino.",
   "type": "module",
   "main": "./dist/index.cjs",

@@ -28,7 +28,12 @@ export function createCapturingLogger(options: LoggerOptions): CaptureResult {
   const pinoInstance = pino(
     {
       level: options.level ?? "trace",
-      base: { name: options.name, hostname: options.hostname ?? "test-host", pid: process.pid },
+      base: {
+        ...(options.bindings ?? {}),
+        name: options.name,
+        hostname: options.hostname ?? "test-host",
+        pid: process.pid,
+      },
       timestamp: pino.stdTimeFunctions.isoTime,
       formatters: {
         level(label, num) {

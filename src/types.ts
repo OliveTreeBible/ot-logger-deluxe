@@ -102,7 +102,8 @@ export interface SlackPostOptions {
    *
    * For webhooks, accepts either:
    *   - a full Incoming Webhook URL (`https://hooks.slack.com/services/...`),
-   *     used as-is; or
+   *     used as-is (other `https://` URLs are ignored unless
+   *     `slack.allowArbitraryWebhookUrlOverrides` is set); or
    *   - one of the {@link SlackableLevel} names (`"info" | "warn" | "error" | "fatal"`)
    *     which is resolved through the matching entry in `slack.channels`.
    *
@@ -187,6 +188,15 @@ export interface SlackOptions {
    *   - `timeoutMs`   per-request timeout (default 5000)
    */
   retry?: SlackRetryOptions;
+
+  /**
+   * When `true`, per-log `slack: { channel: "https://..." }` may use any
+   * `http(s)://` URL as a webhook target. Default `false` restricts URL
+   * overrides to `https://hooks.slack.com/services/...` so untrusted input
+   * cannot turn logging into an SSRF client. Static `defaultWebhookUrl` /
+   * `channels` entries are not affected.
+   */
+  allowArbitraryWebhookUrlOverrides?: boolean;
 }
 
 /** Slack Web API (bot token) options. */
