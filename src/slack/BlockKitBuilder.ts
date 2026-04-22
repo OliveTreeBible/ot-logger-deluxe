@@ -62,6 +62,31 @@ function truncate(text: string, max: number): string {
   return text.slice(0, Math.max(0, max - 3)) + "...";
 }
 
+const FENCE = "```";
+const FENCE_TOTAL = FENCE.length * 2;
+
+/**
+ * Sanitize content that will be wrapped in a triple-backtick fenced code
+ * block. Any inner ``` is made harmless with zero-width spaces so it cannot
+ * terminate our outer fence early.
+ */
+function escapeFencedCode(content: string): string {
+  return content.replaceAll(FENCE, "`\u200b`\u200b`");
+}
+
+/**
+ * Wrap `content` in triple-backtick fences, ensuring that the overall string
+ * (including the opening and closing fences) never exceeds `maxTotal`. The
+ * inner content is truncated with an ellipsis if needed; the fences are
+ * always balanced so later Slack blocks don't end up inside a stray fence.
+ */
+function fencedCodeBlock(content: string, maxTotal: number, prefix = ""): string {
+  const safe = escapeFencedCode(content);
+  const maxInner = Math.max(0, maxTotal - prefix.length - FENCE_TOTAL);
+  const inner = safe.length <= maxInner ? safe : safe.slice(0, Math.max(0, maxInner - 3)) + "...";
+  return `${prefix}${FENCE}${inner}${FENCE}`;
+}
+
 function renderFieldValue(field: NormalizedField): string {
   if (field.code) {
     return "`" + truncate(escapeInlineCode(field.value), SLACK_MRKDWN_MAX - 50) + "`";
@@ -124,13 +149,12 @@ export function buildSlackMessage(args: BuildArgs): SlackMessage {
   }
 
   if (args.code) {
-    const codeText = truncate(
-      "```" + args.code.replaceAll("```", "`\u200b`\u200b`") + "```",
-      SLACK_MRKDWN_MAX
-    );
     blocks.push({
       type: "section",
-      text: { type: "mrkdwn", text: codeText },
+      text: {
+        type: "mrkdwn",
+        text: fencedCodeBlock(args.code, SLACK_MRKDWN_MAX),
+      },
     });
   }
 
@@ -141,10 +165,7 @@ export function buildSlackMessage(args: BuildArgs): SlackMessage {
       type: "section",
       text: {
         type: "mrkdwn",
-        text: truncate(
-          `*Stack:*\n\`\`\`${stack.replaceAll("```", "`\u200b`\u200b`")}\`\`\``,
-          SLACK_MRKDWN_MAX
-        ),
+        text: fencedCodeBlock(stack, SLACK_MRKDWN_MAX, "*Stack:*\n"),
       },
     });
   }

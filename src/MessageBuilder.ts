@@ -1,4 +1,5 @@
 import type { Logger } from "./Logger.js";
+import { isField } from "./internal/coerce.js";
 import type { Field, FieldMap, LogLevel, LogOptions, SlackPostOptions } from "./types.js";
 
 /**
@@ -42,15 +43,10 @@ export class MessageBuilder {
   /** Add many fields. `opts.code` applies to every field that doesn't override it. */
   fields(map: FieldMap, opts: { code?: boolean } = {}): this {
     for (const [name, input] of Object.entries(map)) {
-      if (
-        typeof input === "object" &&
-        input !== null &&
-        Object.prototype.hasOwnProperty.call(input, "value")
-      ) {
-        const existing = input as Field;
+      if (isField(input)) {
         this._fields[name] = {
-          value: existing.value,
-          code: existing.code ?? opts.code,
+          value: input.value,
+          code: input.code ?? opts.code,
         };
       } else {
         this._fields[name] = { value: input, code: opts.code };

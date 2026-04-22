@@ -37,11 +37,18 @@ export type SlackableLevel = "info" | "warn" | "error" | "fatal";
 
 /**
  * A single structured field attached to a log record.
+ *
  * Values are coerced safely for both JSON and Slack rendering:
  *   - `Date`            -> ISO 8601 string
  *   - `Error`           -> { name, message, stack } (JSON) / formatted text (Slack)
  *   - primitives        -> `String(value)`
  *   - objects / arrays  -> `JSON.stringify(value)` with size caps
+ *
+ * **Detection rule:** an entry in `FieldMap` is treated as a `Field` wrapper
+ * **only** when its own enumerable keys are a subset of `{ "value", "code" }`.
+ * This is intentional: a plain object like `{ value: 1, unit: "ms" }` would
+ * otherwise be mistaken for a wrapper and silently reduced to just `1`. Such
+ * objects are passed through untouched and logged as nested structures.
  */
 export interface Field {
   /** The value to render. Accepts any coercible type. */

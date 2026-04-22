@@ -114,4 +114,86 @@ describe("BlockKitBuilder", () => {
     expect(rendered.length).toBeLessThanOrEqual(3000);
     expect(rendered.endsWith("...")).toBe(true);
   });
+
+  it("keeps opening and closing fences balanced when code block is truncated", () => {
+    const huge = "A".repeat(10_000);
+    const msg = buildSlackMessage({
+      level: "info",
+      title: "svc",
+      message: "m",
+      fields: [],
+      code: huge,
+      hostname: "host",
+      timestamp: new Date(),
+    });
+
+    const codeSection = msg.blocks.find(
+      (b) =>
+        b.type === "section" &&
+        "text" in b &&
+        typeof (b.text as { text?: string } | undefined)?.text === "string" &&
+        ((b.text as { text: string }).text.startsWith("```"))
+    ) as { text: { text: string } } | undefined;
+
+    expect(codeSection).toBeDefined();
+    const text = codeSection!.text.text;
+    expect(text.length).toBeLessThanOrEqual(3000);
+    expect(text.startsWith("```")).toBe(true);
+    expect(text.endsWith("```")).toBe(true);
+    // Exactly one opening and one closing fence, no dangling backticks.
+    expect(text.match(/```/g)).toHaveLength(2);
+  });
+
+  it("keeps opening and closing fences balanced when the error stack is truncated", () => {
+    const err = new Error("boom");
+    err.stack = "Error: boom\n" + "at frame\n".repeat(500);
+
+    const msg = buildSlackMessage({
+      level: "error",
+      title: "svc",
+      message: "broke",
+      fields: [],
+      error: err,
+      hostname: "host",
+      timestamp: new Date(),
+    });
+
+    const stackSection = msg.blocks.find(
+      (b) =>
+        b.type === "section" &&
+        "text" in b &&
+        typeof (b.text as { text?: string } | undefined)?.text === "string" &&
+        ((b.text as { text: string }).text.startsWith("*Stack:*"))
+    ) as { text: { text: string } } | undefined;
+
+    expect(stackSection).toBeDefined();
+    const text = stackSection!.text.text;
+    expect(text.length).toBeLessThanOrEqual(3000);
+    expect(text.endsWith("```")).toBe(true);
+    expect(text.match(/```/g)).toHaveLength(2);
+  });
+
+  it("neutralizes inner ``` fences so they cannot escape the block", () => {
+    const payload = "pre ``` inner ``` post";
+    const msg = buildSlackMessage({
+      level: "info",
+      title: "svc",
+      message: "m",
+      fields: [],
+      code: payload,
+      hostname: "host",
+      timestamp: new Date(),
+    });
+
+    const codeSection = msg.blocks.find(
+      (b) =>
+        b.type === "section" &&
+        "text" in b &&
+        typeof (b.text as { text?: string } | undefined)?.text === "string" &&
+        ((b.text as { text: string }).text.startsWith("```"))
+    ) as { text: { text: string } } | undefined;
+    const text = codeSection!.text.text;
+    // Only the outer pair survives; any inner ``` is neutralized.
+    expect(text.match(/```/g)).toHaveLength(2);
+  });
 });

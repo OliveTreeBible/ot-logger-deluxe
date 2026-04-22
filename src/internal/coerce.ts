@@ -56,12 +56,22 @@ export function serializeError(err: unknown): Record<string, unknown> {
   return { message: stringify(err) };
 }
 
-function isField(value: unknown): value is Field {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Object.prototype.hasOwnProperty.call(value, "value")
-  );
+const FIELD_ALLOWED_KEYS = new Set(["value", "code"]);
+
+/**
+ * Strict detection for the `Field` wrapper shape: `{ value, code? }` with no
+ * other own enumerable keys. Requiring a subset of `{ value, code }` prevents
+ * us from silently swallowing real payloads like `{ value: 1, unit: "ms" }`,
+ * which would otherwise be misinterpreted as a Field and logged as just `1`.
+ */
+export function isField(value: unknown): value is Field {
+  if (typeof value !== "object" || value === null) return false;
+  if (Array.isArray(value)) return false;
+  if (!Object.prototype.hasOwnProperty.call(value, "value")) return false;
+  for (const key of Object.keys(value as object)) {
+    if (!FIELD_ALLOWED_KEYS.has(key)) return false;
+  }
+  return true;
 }
 
 /**
