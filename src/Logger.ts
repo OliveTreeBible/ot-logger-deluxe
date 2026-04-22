@@ -109,10 +109,15 @@ export class Logger {
 
   /** Flush any buffered transports and return once done. */
   async flush(): Promise<void> {
+    const flushFn = this.pino.flush;
+    if (typeof flushFn !== "function") return;
     await new Promise<void>((resolve) => {
-      this.pino.flush?.(() => resolve());
-      // Fallback if flush has no callback form
-      resolve();
+      try {
+        flushFn.call(this.pino, () => resolve());
+      } catch {
+        // Defensive: if flush throws (e.g. transport already ended), don't hang.
+        resolve();
+      }
     });
   }
 
@@ -191,7 +196,12 @@ export class Logger {
   }
 }
 
-function buildTransportTargets(options: LoggerOptions): TransportTargetOptions[] {
+/**
+ * Builds the list of pino transport targets for a given set of options.
+ * Exported for testing; prefer `createLogger()` in application code.
+ * @internal
+ */
+export function buildTransportTargets(options: LoggerOptions): TransportTargetOptions[] {
   const targets: TransportTargetOptions[] = [];
   const level = options.level ?? "info";
 
@@ -263,14 +273,28 @@ function addTransportDestinations(
       },
     });
     // `pino-syslog` transforms to syslog text; `pino-socket` delivers it.
+    const protocol = sys.protocol ?? "udp";
+    const socketOptions: Record<string, unknown> = {
+      address: sys.host,
+      port: sys.port ?? (protocol === "tls" ? 6514 : 514),
+      mode: protocol === "udp" ? "udp" : "tcp",
+    };
+    if (protocol === "tls") {
+      socketOptions.secure = true;
+      // pino-socket's `noverify: true` disables TLS cert verification.
+      // Our public option is `rejectUnauthorized` (Node's naming convention):
+      // `rejectUnauthorized: false` -> `noverify: true`.
+      if (sys.rejectUnauthorized === false) {
+        socketOptions.noverify = true;
+      }
+      socketOptions.reconnect = true;
+    } else if (protocol === "tcp") {
+      socketOptions.reconnect = true;
+    }
     targets.push({
       target: "pino-socket",
       level,
-      options: {
-        address: sys.host,
-        port: sys.port ?? 514,
-        mode: (sys.protocol ?? "udp") === "udp" ? "udp4" : "tcp",
-      },
+      options: socketOptions,
     });
   }
 

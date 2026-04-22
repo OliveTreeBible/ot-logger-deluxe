@@ -211,8 +211,9 @@ Recognized variables:
 | `LOG_PRETTY` | `1`/`true` to enable `pino-pretty` colorized output |
 | `LOG_FILE` | Append JSON records to this file (in addition to stdout) |
 | `LOG_SYSLOG_HOST` | Enable RFC 5424 syslog transport |
-| `LOG_SYSLOG_PORT` | Default `514` |
-| `LOG_SYSLOG_PROTOCOL` | `udp` (default), `tcp`, or `tls` |
+| `LOG_SYSLOG_PORT` | Default `514` (or `6514` when `LOG_SYSLOG_PROTOCOL=tls`) |
+| `LOG_SYSLOG_PROTOCOL` | `udp` (default), `tcp`, or `tls` (RFC 5425) |
+| `LOG_SYSLOG_REJECT_UNAUTHORIZED` | `0`/`false` to accept self-signed TLS certs |
 | `LOG_SYSLOG_APP_NAME` | `APP-NAME` field (defaults to logger name) |
 | `SLACK_WEBHOOK_URL` | Fallback Incoming Webhook for all levels |
 | `SLACK_WEBHOOK_URL_INFO` | Per-level webhooks |
@@ -275,10 +276,24 @@ For rsyslog / syslog-ng / Papertrail users who need strict RFC 5424 wire
 format. Requires `pino-syslog` and `pino-socket`.
 
 ```ts
+// Plain UDP (RFC 5424)
 createLogger({
   name: "svc",
   transports: {
     syslog: { host: "logs.example.com", port: 514, protocol: "udp", format: "RFC5424" },
+  },
+});
+
+// TLS (RFC 5425 syslog over TLS/TCP) - certs verified by default
+createLogger({
+  name: "svc",
+  transports: {
+    syslog: {
+      host: "logs.papertrailapp.com",
+      port: 6514,
+      protocol: "tls",
+      // rejectUnauthorized: false,  // uncomment only for self-signed test setups
+    },
   },
 });
 ```

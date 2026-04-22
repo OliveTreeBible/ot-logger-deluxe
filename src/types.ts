@@ -205,10 +205,25 @@ export interface TransportOptions {
 export interface SyslogTransportOptions {
   /** Remote syslog host. */
   host: string;
-  /** Remote syslog port. Default: 514. */
+  /**
+   * Remote syslog port. Defaults: `514` for `udp`/`tcp`, `6514` for `tls`
+   * (the RFC 5425 "syslog over TLS" well-known port).
+   */
   port?: number;
-  /** Transport protocol. Default: "udp". */
+  /**
+   * Transport protocol. Default: `"udp"`.
+   *
+   * - `"udp"` — classic RFC 3164/5424 over UDP, no delivery guarantees.
+   * - `"tcp"` — RFC 6587 syslog over plain TCP with reconnect + backoff.
+   * - `"tls"` — RFC 5425 syslog over TLS/TCP. Certificates are verified by
+   *   default; set `rejectUnauthorized: false` to accept self-signed certs.
+   */
   protocol?: "udp" | "tcp" | "tls";
+  /**
+   * When `protocol: "tls"`, controls certificate verification. Default `true`
+   * (reject self-signed / untrusted certs). Set to `false` to allow them.
+   */
+  rejectUnauthorized?: boolean;
   /** `APP-NAME` field (RFC 5424). Defaults to the logger's `name`. */
   appName?: string;
   /** `pino-syslog` format. Default: "RFC5424". */

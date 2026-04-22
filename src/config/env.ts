@@ -51,8 +51,12 @@ const LEVEL_SUFFIXES: Record<SlackableLevel, string> = {
  *   SLACK_CHANNEL_FATAL
  *
  *   LOG_SYSLOG_HOST                 enable RFC 5424 syslog transport
- *   LOG_SYSLOG_PORT                 default 514
- *   LOG_SYSLOG_PROTOCOL             udp|tcp|tls (default udp)
+ *   LOG_SYSLOG_PORT                 default 514 (6514 when protocol=tls)
+ *   LOG_SYSLOG_PROTOCOL             udp (default), tcp, or tls
+ *                                   - tls = RFC 5425 syslog over TLS/TCP;
+ *                                     certs are verified by default.
+ *   LOG_SYSLOG_REJECT_UNAUTHORIZED  '0'/'false' to accept self-signed certs
+ *                                   (TLS protocol only)
  *   LOG_SYSLOG_APP_NAME             APP-NAME (default: logger name)
  *
  *   LOG_FILE                        append JSON logs to this file
@@ -148,6 +152,10 @@ function transportsFromEnv(env: NodeJS.ProcessEnv): TransportOptions | undefined
     const protocol = env.LOG_SYSLOG_PROTOCOL?.toLowerCase();
     if (protocol === "udp" || protocol === "tcp" || protocol === "tls") {
       syslog.protocol = protocol;
+    }
+    const rejectUnauthorized = parseBool(env.LOG_SYSLOG_REJECT_UNAUTHORIZED);
+    if (rejectUnauthorized !== undefined) {
+      syslog.rejectUnauthorized = rejectUnauthorized;
     }
     if (env.LOG_SYSLOG_APP_NAME) syslog.appName = env.LOG_SYSLOG_APP_NAME;
     transports.syslog = syslog;
