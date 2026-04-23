@@ -133,6 +133,17 @@ describe("Logger", () => {
     expect(records[0]).toMatchObject({ msg: "hi", requestId: "abc", name: "svc" });
   });
 
+  it("options.bindings cannot override the logger name", async () => {
+    const { logger, records } = createCapturingLogger({
+      name: "svc",
+      bindings: { name: "spoof", region: "us-east-1" },
+    });
+
+    await logger.info("hi");
+
+    expect(records[0]).toMatchObject({ name: "svc", region: "us-east-1" });
+  });
+
   it("child() returns a real Logger instance with all level methods", () => {
     const { logger } = createCapturingLogger({ name: "svc" });
     const child = logger.child({ requestId: "abc" });

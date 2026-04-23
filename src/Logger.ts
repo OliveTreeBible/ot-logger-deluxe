@@ -188,7 +188,7 @@ export class Logger {
   /** @internal */
   static createPino(options: LoggerOptions, hostname: string): PinoLogger {
     const level = options.level ?? "info";
-    const bindings = { name: options.name, ...(options.bindings ?? {}) };
+    const bindings = { ...(options.bindings ?? {}), name: options.name };
 
     const targets = buildTransportTargets(options);
 

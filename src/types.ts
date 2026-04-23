@@ -102,7 +102,9 @@ export interface SlackPostOptions {
    *
    * For webhooks, accepts either:
    *   - a full Incoming Webhook URL (`https://hooks.slack.com/services/...`),
-   *     used as-is; or
+   *     used as-is (other `http(s)://` URLs are ignored as an override unless
+   *     `slack.allowArbitraryWebhookUrlOverrides` is set, and resolution falls
+   *     back to `slack.channels` / `slack.defaultWebhookUrl` for this level); or
    *   - one of the {@link SlackableLevel} names (`"info" | "warn" | "error" | "fatal"`)
    *     which is resolved through the matching entry in `slack.channels`.
    *
@@ -187,6 +189,16 @@ export interface SlackOptions {
    *   - `timeoutMs`   per-request timeout (default 5000)
    */
   retry?: SlackRetryOptions;
+
+  /**
+   * When `true`, per-log `slack: { channel: "https://..." }` may use any
+   * `http(s)://` URL as a webhook target. Default `false` restricts URL
+   * overrides to `https://hooks.slack.com/services/...`; other URLs are not
+   * used as overrides (resolution falls back to static `channels` /
+   * `defaultWebhookUrl`) so untrusted input cannot drive arbitrary `fetch`
+   * targets.
+   */
+  allowArbitraryWebhookUrlOverrides?: boolean;
 }
 
 /** Slack Web API (bot token) options. */

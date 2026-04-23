@@ -43,7 +43,7 @@ export class SlackTransport {
     this.ctx = ctx;
 
     // Always construct the WebhookClient: it holds no handles until send() is
-    // called, and per-message slack: { channel: "https://hooks.slack..." }
+    // called, and per-message slack: { channel: "https://hooks.slack.com/services/..." }
     // overrides can resolve a valid webhook URL even when no webhook is set
     // in the static options. Conditional construction would silently drop
     // those sends.
@@ -64,8 +64,11 @@ export class SlackTransport {
    * needs it directly.
    */
   async drained(): Promise<void> {
-    if (this.pending.size === 0) return;
-    await Promise.allSettled([...this.pending]);
+    // Re-snapshot after each batch so sends that start while we await prior
+    // work are not missed when Logger.flush() resolves.
+    while (this.pending.size > 0) {
+      await Promise.allSettled([...this.pending]);
+    }
   }
 
   /** True if at least one destination can be resolved for the given level. */
@@ -150,9 +153,14 @@ export class SlackTransport {
     channelOverride?: string
   ): string | undefined {
     if (channelOverride) {
-      if (isHttpUrl(channelOverride)) return channelOverride;
-      const named = this.options.channels?.[channelOverride as SlackableLevel];
-      if (named) return named;
+      if (isHttpUrl(channelOverride)) {
+        if (isSlackIncomingWebhookUrl(channelOverride)) return channelOverride;
+        if (this.options.allowArbitraryWebhookUrlOverrides) return channelOverride;
+        // Disallowed URL: treat as no override so configured level/default webhooks still deliver.
+      } else {
+        const named = this.options.channels?.[channelOverride as SlackableLevel];
+        if (named) return named;
+      }
     }
     return this.options.channels?.[level] ?? this.options.defaultWebhookUrl;
   }
@@ -171,4 +179,16 @@ export class SlackTransport {
 
 function isHttpUrl(value: string): boolean {
   return value.startsWith("https://") || value.startsWith("http://");
+}
+
+/** True for `https://hooks.slack.com/services/...` Incoming Webhook URLs. */
+function isSlackIncomingWebhookUrl(value: string): boolean {
+  try {
+    const u = new URL(value);
+    if (u.protocol !== "https:") return false;
+    if (u.hostname !== "hooks.slack.com") return false;
+    return u.pathname.startsWith("/services/");
+  } catch {
+    return false;
+  }
 }
