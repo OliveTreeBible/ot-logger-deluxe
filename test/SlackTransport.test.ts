@@ -99,7 +99,7 @@ describe("SlackTransport routing", () => {
     expect(sent[0]!.url).toBe(SLACK_HOOK_URL);
   });
 
-  it("ignores per-message webhook URL overrides that are not hooks.slack.com/services (SSRF)", async () => {
+  it("ignores untrusted per-message webhook URLs and falls back to configured webhooks (SSRF)", async () => {
     const { transport, sent } = makeTransport({
       defaultWebhookUrl: "https://hooks.example.com/default",
     });
@@ -111,7 +111,8 @@ describe("SlackTransport routing", () => {
       channelOverride: "https://hooks.example.com/override",
     });
 
-    expect(sent).toHaveLength(0);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]!.url).toBe("https://hooks.example.com/default");
   });
 
   it("honors arbitrary per-message webhook URLs when allowArbitraryWebhookUrlOverrides is set", async () => {

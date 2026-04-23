@@ -156,10 +156,11 @@ export class SlackTransport {
       if (isHttpUrl(channelOverride)) {
         if (isSlackIncomingWebhookUrl(channelOverride)) return channelOverride;
         if (this.options.allowArbitraryWebhookUrlOverrides) return channelOverride;
-        return undefined;
+        // Disallowed URL: treat as no override so configured level/default webhooks still deliver.
+      } else {
+        const named = this.options.channels?.[channelOverride as SlackableLevel];
+        if (named) return named;
       }
-      const named = this.options.channels?.[channelOverride as SlackableLevel];
-      if (named) return named;
     }
     return this.options.channels?.[level] ?? this.options.defaultWebhookUrl;
   }
